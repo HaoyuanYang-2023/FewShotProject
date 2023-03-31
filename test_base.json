@@ -1,0 +1,19 @@
+{
+    "dataset": "miniImageNet",
+    "test_root": "F:/miniImageNet/test",
+    "meta_model_path": "./pretrained/MPNCOVResNet12_pretrain_dim128_drop0.3_last_model.pth",
+    "model": "MPNCOVResNet12",
+    "keep_prob": 1,
+    "penalty_C": 2,
+    "method": "stl",
+    "exp": "",
+    "reduced_dim": 128,
+    "episodes": 2000,
+    "n_way": 5,
+    "n_support": 5,
+    "n_query": 15,
+    "pre2meta": true,
+    "manual_seed": 1,
+    "gpu": 0,
+    "augment": true
+}

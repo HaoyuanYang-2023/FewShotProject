@@ -1,0 +1,22 @@
+{
+    "train_root": "F:/miniImageNet/train",
+    "exp": "try",
+    "reduced_dim": 256,
+    "batchsize": 64,
+    "num_class": 64,
+    "num_workers": 0,
+    "epochs": 1,
+    "print_freq": 100,
+    "lr": 0.1,
+    "keep_prob": 1,
+    "dropout_rate": 0,
+    "optimizer": "SGD",
+    "momentum": 0.9,
+    "nesterov": true,
+    "weight_decay": 0.0005,
+    "milestones": [40,80],
+    "lrG": 0.1,
+    "manual_seed": 1,
+    "gpu": 0,
+    "augment": true
+}

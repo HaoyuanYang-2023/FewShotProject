@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="WebServers">
+    <option name="servers">
+      <webServer id="0570ce82-1cd1-420d-8b7a-c4e836e6e5bc" name="A4000">
+        <fileTransfer rootFolder="/root/autodl-nas" accessType="SFTP" host="123.125.240.150" port="35612" sshConfigId="09f63544-1704-4579-93c5-78885f6a55da" sshConfig="root@123.125.240.150:35612 password">
+          <advancedOptions>
+            <advancedOptions dataProtectionLevel="Private" keepAliveTimeout="0" passiveMode="true" shareSSLContext="true" />
+          </advancedOptions>
+        </fileTransfer>
+      </webServer>
+    </option>
+  </component>
+</project>
