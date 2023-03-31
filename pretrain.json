@@ -31,6 +31,6 @@
     "manual_seed": 1,
     "gpu": 0,
     "resume": false,
-    "label_smooth": true,
+    "label_smooth": false,
     "smooth": 0.2
 }

@@ -141,18 +141,6 @@ def train(tr_dataloader, model, optim, lr_scheduler, checkpoint_dir, val_dataloa
     torch.save(model.state_dict(), last_model_path)
 
 
-def init_seed():
-    """
-    Disable cudnn to maximize reproducibility
-    """
-    random.seed(args.manual_seed)
-    np.random.seed(args.manual_seed)
-    torch.manual_seed(args.manual_seed)
-    torch.cuda.manual_seed_all(args.manual_seed)
-    torch.backends.cudnn.deterministic = True
-    torch.backends.cudnn.benchmark = False
-
-
 def init_dataset():
     tr_trans = get_transformers('train')
     val_trans = get_transformers('val')
@@ -196,9 +184,6 @@ def init_dataloader():
 
 
 def init_model():
-    """
-    Initialize the ProtoNet
-    """
     model = model_utils.model_dict[args.model](args.keep_prob, args.reduced_dim).to(device)
 
     model = load_model(model, args.pretrain_model_path)
@@ -221,28 +206,17 @@ def init_optim(model):
                                weight_decay=args.weight_decay)
 
 
-def init_lr_scheduler(optim):
-    """
-    Initialize the learning rate scheduler
-    """
-    return torch.optim.lr_scheduler.MultiStepLR(optimizer=optim,
-                                                gamma=args.lrG,
-                                                milestones=args.milestones)
-
-
-init_seed()
+init_seed(args.manual_seed)
 tr_dataloader, val_dataloader = init_dataloader()
 
 model = init_model()
 optim = init_optim(model)
-lr_scheduler = init_lr_scheduler(optim)
+lr_scheduler = init_lr_scheduler(optim,args.lrG,args.milestones)
 
 if __name__ == "__main__":
     checkpoint_dir = 'runs/%s/%s' % (args.dataset, args.model)
     checkpoint_dir += '_%dway_%dshot' % (args.n_way, args.n_support)
-    checkpoint_dir += '_metatrain'
-    checkpoint_dir += '_'
-    checkpoint_dir += args.exp
+    checkpoint_dir += '_metatrain_' + args.exp
     if not os.path.exists(os.path.join(os.getcwd(), checkpoint_dir)):
         os.makedirs(os.path.join(os.getcwd(), checkpoint_dir))
     print(checkpoint_dir)

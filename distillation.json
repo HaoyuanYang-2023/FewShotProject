@@ -29,5 +29,5 @@
     "n_query": 15,
     "manual_seed": 1,
     "gpu": 0,
-    "resume": false,
+    "resume": false
 }

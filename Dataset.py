@@ -1,14 +1,3 @@
-"""
-miniImageNet following the split in
-Ravi, Sachin, and Hugo Larochelle.
-"Optimization as a model for few-shot learning." International conference on learning representations. 2017.
-https://github.com/twitter-research/meta-learning-lstm/tree/master/data/miniImagenet
-Total 100 classes with
-64 classes for train
-16 classes for validation
-20 classes for test
-"""
-
 import os
 import torch
 
@@ -17,7 +6,6 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 from torchvision import transforms
-
 
 
 class PrototypicalBatchSampler(object):
@@ -88,7 +76,7 @@ class PrototypicalBatchSampler(object):
                 # 给indexes对应class对应sample赋予idx (在label数组中的idx)
                 self.indexes[label_idx, np.where(np.isnan(self.indexes[label_idx]))[0][0]] = idx
                 self.numel_per_class[label_idx] += 1
-            save_path = os.path.join(os.getcwd(),'episode_idx')
+            save_path = os.path.join(os.getcwd(), 'episode_idx')
             if not os.path.exists(save_path):
                 os.makedirs(save_path)
             np.save(indexes_path, self.indexes)
@@ -111,7 +99,6 @@ class PrototypicalBatchSampler(object):
             # 随机选取c个类
             c_idxs = torch.randperm(len(self.classes))[:cpi]
             for i, c in enumerate(self.classes[c_idxs]):
-
                 # 从第i个class到第i+1个class在batch中的slice
                 s = slice(i * spc, (i + 1) * spc)
                 # 找到第i个类的label_idx
@@ -153,11 +140,6 @@ def visual_batch(dataloader, dataset_name):
 
 
 def get_transformers(phase=None):
-    """
-    Following the procedure in ResNet paper. The stander derivation and means adopted from pytorch website.
-    :param phase:
-    :return:
-    """
     if phase not in ["train", "val", "test"]:
         raise ValueError("phase should have value of one of [train, val, test]")
     normalize = transforms.Normalize(mean=[0.472, 0.453, 0.410], std=[0.277, 0.268, 0.285])
