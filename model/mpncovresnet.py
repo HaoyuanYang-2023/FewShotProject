@@ -1,6 +1,5 @@
 import torch
 import torch.nn as nn
-from split_layer import split_layer_dec
 from torch.autograd import Function
 from model.resnet import ResNet12, ResNet34s, resnet18
 from representation import MPNCOV

@@ -2,19 +2,17 @@ import argparse
 import json
 import os
 import time
-import random
 import torch
+
 import torch.nn as nn
 from torch.cuda.amp import autocast, GradScaler
 import numpy as np
 from torchvision.datasets import ImageFolder
-from tqdm import tqdm
 from params import get_params
 from Dataset import get_transformers, PrototypicalBatchSampler
 from loss import PrototypicalLoss, LabelSmoothingLoss
 from torch.utils.tensorboard import SummaryWriter
 from utils import model_utils, init_seed, init_lr_scheduler
-from utils.model_utils import load_model
 
 param = argparse.ArgumentParser()
 param.add_argument('--param_file', type=str, default=None, help="JSON file for parameters")
@@ -226,7 +224,7 @@ tr_dataloader, val_dataloader = init_dataloader()
 
 model = init_model()
 optim = init_optim(model)
-lr_scheduler = init_lr_scheduler(optim, args.lrG, args.milestone)
+lr_scheduler = init_lr_scheduler(optim, args.lrG, args.milestones)
 
 if __name__ == "__main__":
     checkpoint_dir = 'runs/%s/%s' % (args.dataset, args.model)
