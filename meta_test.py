@@ -1,9 +1,7 @@
 import argparse
 import time
-import random
 import numpy as np
 import torch
-from torch import nn
 from torch.cuda.amp import autocast
 
 from tqdm import tqdm
@@ -13,29 +11,17 @@ from loss import PrototypicalLoss, stl_cls_scores
 from torch.utils.tensorboard import SummaryWriter
 from utils import model_utils
 from utils.model_utils import load_model
-from sklearn.linear_model import LogisticRegression
 from torchvision.datasets import ImageFolder
 
 param = argparse.ArgumentParser()
 param.add_argument('--param_file', type=str, default=None, help="JSON file for parameters")
 json_parm = param.parse_args()
 print(json_parm)
-if json_parm.param_file is not None:
-    args = get_params(True, json_parm.param_file)
-else:
-    args = get_params()
+args = get_params(json_parm.param_file)
+
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 torch.cuda.set_device(args.gpu)
-"""
-Disable cudnn to maximize reproducibility
-"""
-'''random.seed(args.manual_seed)
-np.random.seed(args.manual_seed)
-torch.manual_seed(args.manual_seed)
-torch.cuda.manual_seed_all(args.manual_seed)
-torch.backends.cudnn.deterministic = True
-torch.backends.cudnn.benchmark = False'''
 
 if args.method == "stl":
     print("Test STL")
@@ -56,21 +42,18 @@ sampler = PrototypicalBatchSampler(labels=test_dataset.targets,
                                    iterations=args.episodes,
                                    dataset_name='miniImageNet_test' if args.dataset == "miniImageNet" else
                                    'tieredImageNet_test')
-test_dataloader = torch.utils.data.DataLoader(test_dataset, batch_sampler=sampler, num_workers=0)
+test_dataloader = torch.utils.data.DataLoader(test_dataset, batch_sampler=sampler, num_workers=8)
 
 episode_test_acc = []
 val_time = []
 model.eval()
-val_iter = iter(test_dataloader)
 loss_fn = PrototypicalLoss(n_way=args.n_way, n_support=args.n_support, n_query=args.n_query)
 
 test_iter = iter(test_dataloader)
 tqdm_gen = tqdm(test_iter)
 for batch in tqdm_gen:
-    # for batch in tqdm(val_iter):
     x, y = batch
     x = x.to(device)
-
     with torch.no_grad():
         with autocast():
             start_time = time.time()

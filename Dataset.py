@@ -60,8 +60,8 @@ class PrototypicalBatchSampler(object):
         # class:2                        sample_num: 5
         # class:3                        sample_num: 6
         # indexes shape: (4, 40)
-        indexes_path = os.path.join(os.getcwd() + '\episode_idx', self.dataset_name + '_indexes.npy')
-        numel_per_class_path = os.path.join(os.getcwd() + '\episode_idx', self.dataset_name + '_numel_per_class.npy')
+        indexes_path = os.path.join(os.getcwd() + '/episode_idx', self.dataset_name + '_indexes.npy')
+        numel_per_class_path = os.path.join(os.getcwd() + '/episode_idx', self.dataset_name + '_numel_per_class.npy')
         if not os.path.exists(indexes_path) and not os.path.exists(numel_per_class_path):
             print("Creat dataset indexes")
             self.idxs = range(len(self.labels))
@@ -102,7 +102,7 @@ class PrototypicalBatchSampler(object):
                 # 从第i个class到第i+1个class在batch中的slice
                 s = slice(i * spc, (i + 1) * spc)
                 # 找到第i个类的label_idx
-                label_idx = torch.argwhere(self.classes.eq(c)).item()
+                label_idx = c.item()
                 # 在第label_idx类中随机选择spc个样本
                 sample_idxs = torch.randperm(self.numel_per_class[label_idx])[:spc]
                 # 这些样本的索引写如batch
