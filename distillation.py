@@ -33,6 +33,7 @@ parser.add_argument('--pretrain_model_path', type=str, default='')
 parser.add_argument('--epochs', type=int, default=160)
 parser.add_argument('--batch_size', type=int, default=64)
 
+parser.add_argument('--val',type=str,choices=['meta','last'])
 parser.add_argument('--val_n_episodes', type=int, help='number of val episodes, default=600', default=600)
 parser.add_argument('--n_way', type=int, default=5)
 parser.add_argument('--n_support', type=int, default=5)

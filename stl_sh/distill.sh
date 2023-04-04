@@ -1,7 +1,7 @@
 cd ../
 
-TRAIN_ROOT=/media/
-VAL_ROOT=/media/
+TRAIN_ROOT=F:/miniImageNet/train
+VAL_ROOT=F:/miniImageNet/test
 PRETRAIN_MODEL_PATH=./runs/miniImageNet/MPNCOVResNet12_pretrain_dim196/last_model.pth
 echo '==born1=='
 nohup python distillation.py --dataset miniImageNet --train_root $TRAIN_ROOT --val_root $VAL_ROOT --born 1 --epochs 170 --milestones [100,150] --pretrain_model_path $PRETRAIN_MODEL_PATH --reduced_dim 196 --dropout_rate 0.5 --exp dim196 --val last >./logs/MPNCOV_dis_dim196_born1.log 2>&1 &

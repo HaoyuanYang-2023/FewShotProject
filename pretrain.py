@@ -23,7 +23,7 @@ parser.add_argument('--dataset', type=str, help='dataset name', default='miniIma
                     choices=['miniImageNet', 'tieredImageNet'])
 parser.add_argument('--train_root', type=str, help='path to dataset', default='')
 parser.add_argument('--val_root', type=str, help='path to dataset', default='')
-parser.add_argument('--num_workers', type=int, default=8)
+parser.add_argument('--num_workers', type=int, default=0)
 
 parser.add_argument('--model', type=str, help='model to use', default="MPNCOVResNet12")
 parser.add_argument('--dropout_rate', type=float, default=0.5)
@@ -33,7 +33,7 @@ parser.add_argument('--epochs', type=int, default=160)
 parser.add_argument('--batch_size', type=int, default=64)
 
 parser.add_argument('--val', default='meta', choices=['meta', 'last'], type=str)
-parser.add_argument('--val_n_episodes', type=int, help='number of val episodes, default=600', default=600)
+parser.add_argument('--val_n_episode', type=int, help='number of val episodes, default=600', default=600)
 parser.add_argument('--n_way', type=int, default=5)
 parser.add_argument('--n_support', type=int, default=5)
 parser.add_argument('--n_query', type=int, default=15)
@@ -53,6 +53,8 @@ parser.add_argument('--gpu', type=int, default=0)
 parser.add_argument('--resume', action='store_true', help='resume training')
 parser.add_argument('--checkpoint_path', type=str, default='')
 
+parser.add_argument('--ema', default=False)
+parser.add_argument('--label_smooth', default=False)
 args = parser.parse_args()
 if args.param_file is not None:
     args = get_params(args.param_file)
@@ -214,12 +216,13 @@ def init_val_sampler(labels):
 def init_dataloader():
     train_dataset, val_dataset = init_dataset()
     val_sampler = init_val_sampler(val_dataset.targets)
-    tr_dataloader = torch.utils.data.DataLoader(train_dataset, batch_size=args.batchsize, shuffle=True,
+    tr_dataloader = torch.utils.data.DataLoader(train_dataset, batch_size=args.batch_size, shuffle=True,
                                                 num_workers=args.num_workers)
     if args.val == 'last':
         val_dataloader = None
     else:
-        val_dataloader = torch.utils.data.DataLoader(val_dataset, batch_sampler=val_sampler, num_workers=args.num_workers)
+        val_dataloader = torch.utils.data.DataLoader(val_dataset, batch_sampler=val_sampler,
+                                                     num_workers=args.num_workers)
     return tr_dataloader, val_dataloader
 
 
@@ -227,9 +230,11 @@ def init_model():
     model = model_utils.model_dict[args.model](args.reduced_dim)
 
     in_dim = int(args.reduced_dim * (args.reduced_dim + 1) / 2)
-    linear = nn.Linear(in_dim, args.num_class)
+    if args.dataset == 'miniImageNet':
+        num_class = 64
+    linear = nn.Linear(in_dim, num_class)
     linear.bias.data.fill_(0)
-    model = nn.Sequential(model, nn.Dropout(args.dropout_rate), nn.Linear(in_dim, args.num_class))
+    model = nn.Sequential(model, nn.Dropout(args.dropout_rate), linear)
     model.to(device)
     return model
 
