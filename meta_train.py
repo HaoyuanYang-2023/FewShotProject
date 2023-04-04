@@ -50,7 +50,7 @@ else:
     parser.add_argument('--milestones', default=[80, 120, 140])
 
     parser.add_argument('--lrG', type=float, help='StepLR learning rate scheduler gamma, default=0.1', default=0.1)
-    parser.add_argument('--exp', type=str, help='exp information', default='exp1')
+    parser.add_argument('--exp', type=str, help='exp information', default='')
     parser.add_argument('--print_freq', type=int, help="Step interval to print", default=100)
     parser.add_argument('--manual_seed', type=int, default=1)
     parser.add_argument('--gpu', type=int, default=0)

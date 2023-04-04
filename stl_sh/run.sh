@@ -1,0 +1,2 @@
+./pretrain.sh
+./distill.sh
