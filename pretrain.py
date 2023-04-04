@@ -19,7 +19,8 @@ from utils import model_utils, init_seed, init_lr_scheduler
 parser = argparse.ArgumentParser()
 parser.add_argument('--param_file', type=str, default=None, help="JSON file for parameters")
 
-parser.add_argument('--dataset', type=str, help='dataset name', default='miniImageNet',choices=['miniImageNet', 'tieredImageNet'])
+parser.add_argument('--dataset', type=str, help='dataset name', default='miniImageNet',
+                    choices=['miniImageNet', 'tieredImageNet'])
 parser.add_argument('--train_root', type=str, help='path to dataset', default='')
 parser.add_argument('--val_root', type=str, help='path to dataset', default='')
 parser.add_argument('--num_workers', type=int, default=8)
@@ -31,6 +32,7 @@ parser.add_argument('--reduced_dim', type=int, default=640, help="Dimensions to 
 parser.add_argument('--epochs', type=int, default=160)
 parser.add_argument('--batch_size', type=int, default=64)
 
+parser.add_argument('--val', default='meta', choices=['meta', 'last'], type=str)
 parser.add_argument('--val_n_episodes', type=int, help='number of val episodes, default=600', default=600)
 parser.add_argument('--n_way', type=int, default=5)
 parser.add_argument('--n_support', type=int, default=5)
@@ -145,7 +147,6 @@ def train(tr_dataloader, model, optim, lr_scheduler, checkpoint_dir, val_dataloa
         lr_scheduler.step()
         if val_dataloader is None:
             continue
-
         episode_val_loss = []
         episode_val_acc = []
         val_time = []
@@ -215,7 +216,10 @@ def init_dataloader():
     val_sampler = init_val_sampler(val_dataset.targets)
     tr_dataloader = torch.utils.data.DataLoader(train_dataset, batch_size=args.batchsize, shuffle=True,
                                                 num_workers=args.num_workers)
-    val_dataloader = torch.utils.data.DataLoader(val_dataset, batch_sampler=val_sampler, num_workers=args.num_workers)
+    if args.val == 'last':
+        val_dataloader = None
+    else:
+        val_dataloader = torch.utils.data.DataLoader(val_dataset, batch_sampler=val_sampler, num_workers=args.num_workers)
     return tr_dataloader, val_dataloader
 
 

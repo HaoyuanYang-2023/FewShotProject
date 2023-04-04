@@ -231,7 +231,11 @@ def init_dataloader():
     val_sampler = init_val_sampler(val_dataset.targets)
     tr_dataloader = torch.utils.data.DataLoader(train_dataset, batch_size=args.batchsize, shuffle=True,
                                                 num_workers=args.num_workers)
-    val_dataloader = torch.utils.data.DataLoader(val_dataset, batch_sampler=val_sampler, num_workers=args.num_workers)
+    if args.val == 'last':
+        val_dataloader = None
+    else:
+        val_dataloader = torch.utils.data.DataLoader(val_dataset, batch_sampler=val_sampler,
+                                                     num_workers=args.num_workers)
     return tr_dataloader, val_dataloader
 
 
