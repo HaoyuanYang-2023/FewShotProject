@@ -213,7 +213,7 @@ def init_dataloader():
 
 
 def init_model():
-    model = model_utils.model_dict[args.model](args.keep_prob, args.reduced_dim).to(device)
+    model = model_utils.model_dict[args.model](args.reduced_dim).to(device)
 
     model = load_model(model, args.pretrain_model_path)
     return model

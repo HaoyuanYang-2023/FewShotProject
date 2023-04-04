@@ -34,7 +34,7 @@ parser.add_argument('--epochs', type=int, default=160)
 parser.add_argument('--batch_size', type=int, default=64)
 
 parser.add_argument('--val',type=str,choices=['meta','last'])
-parser.add_argument('--val_n_episodes', type=int, help='number of val episodes, default=600', default=600)
+parser.add_argument('--val_n_episode', type=int, help='number of val episodes, default=600', default=600)
 parser.add_argument('--n_way', type=int, default=5)
 parser.add_argument('--n_support', type=int, default=5)
 parser.add_argument('--n_query', type=int, default=15)
@@ -113,6 +113,7 @@ def train(tr_dataloader, model, model_t, optim, lr_scheduler, checkpoint_dir, va
         train_iter = iter(tr_dataloader)
 
         for batch_idx, batch in enumerate(tr_dataloader):
+            # print(model[2].state_dict().items())
             # for batch in tqdm(train_iter):
             optim.zero_grad()
             x, y = batch
@@ -230,7 +231,7 @@ def init_val_sampler(labels):
 def init_dataloader():
     train_dataset, val_dataset = init_dataset()
     val_sampler = init_val_sampler(val_dataset.targets)
-    tr_dataloader = torch.utils.data.DataLoader(train_dataset, batch_size=args.batchsize, shuffle=True,
+    tr_dataloader = torch.utils.data.DataLoader(train_dataset, batch_size=args.batch_size, shuffle=True,
                                                 num_workers=args.num_workers)
     if args.val == 'last':
         val_dataloader = None
@@ -245,12 +246,20 @@ def init_model():
     Initialize the ProtoNet
     """
     model = model_utils.model_dict[args.model](args.reduced_dim)
+    model_t = model_utils.model_dict[args.model](args.reduced_dim)
     in_dim = int(args.reduced_dim * (args.reduced_dim + 1) / 2)
-    model_s = nn.Sequential(model, nn.Dropout(args.dropout_rate), nn.Linear(in_dim, args.num_class))
-    model_t = nn.Sequential(model, nn.Dropout(args.dropout_rate), nn.Linear(in_dim, args.num_class))
-    model_t = model_utils.load_model(model_t, args.pretrain_model_path, pre2meta=False)
+    if args.dataset == 'miniImageNet':
+        num_class = 64
+    linear = nn.Linear(in_dim, num_class)
+    linear.bias.data.fill_(0)
+
+    model_s = nn.Sequential(model, nn.Dropout(args.dropout_rate), linear)
     model_s = model_s.to(device)
+
+    model_t = nn.Sequential(model_t, nn.Dropout(args.dropout_rate), nn.Linear(in_dim,num_class))
+    model_t = model_utils.load_model(model_t, args.pretrain_model_path, pre2meta=False)
     model_t = model_t.to(device)
+
     return model_s, model_t
 
 

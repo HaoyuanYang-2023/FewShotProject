@@ -23,7 +23,7 @@ parser.add_argument('--dataset', type=str, help='dataset name', default='miniIma
                     choices=['miniImageNet', 'tieredImageNet'])
 parser.add_argument('--train_root', type=str, help='path to dataset', default='')
 parser.add_argument('--val_root', type=str, help='path to dataset', default='')
-parser.add_argument('--num_workers', type=int, default=0)
+parser.add_argument('--num_workers', type=int, default=8)
 
 parser.add_argument('--model', type=str, help='model to use', default="MPNCOVResNet12")
 parser.add_argument('--dropout_rate', type=float, default=0.5)
