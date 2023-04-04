@@ -16,52 +16,48 @@ from tensorboardX import SummaryWriter
 from utils import model_utils, init_seed, init_lr_scheduler
 from torchvision.datasets import ImageFolder
 
-param = argparse.ArgumentParser()
-param.add_argument('--param_file', type=str, default=None, help="JSON file for hyper-parameters")
-json_parm = param.parse_args()
-print(json_parm)
-if json_parm.param_file is not None:
-    args = get_params(json_parm.param_file)
-else:
-    parser = argparse.ArgumentParser()
-    parser.add_argument('--dataset', type=str, help='dataset name', default='miniImageNet',
+parser = argparse.ArgumentParser()
+parser.add_argument('--param_file', type=str, default=None, help="JSON file for hyper-parameters")
+parser.add_argument('--dataset', type=str, help='dataset name', default='miniImageNet',
                         choices=['miniImageNet', 'tieredImageNet'])
-    parser.add_argument('--train_root', type=str, help='path to dataset', default='')
-    parser.add_argument('--val_root', type=str, help='path to dataset', default='')
-    parser.add_argument('--num_workers', type=int, default=8)
+parser.add_argument('--train_root', type=str, help='path to dataset', default='')
+parser.add_argument('--val_root', type=str, help='path to dataset', default='')
+parser.add_argument('--num_workers', type=int, default=8)
 
-    parser.add_argument('--model', type=str, help='model to use', default="MPNCOVResNet12")
-    parser.add_argument('--dropout_rate', type=float, default=0.5)
-    parser.add_argument('--reduced_dim', type=int, default=640, help="Dimensions to reduce before cov layer")
+parser.add_argument('--model', type=str, help='model to use', default="MPNCOVResNet12")
+parser.add_argument('--dropout_rate', type=float, default=0.5)
+parser.add_argument('--reduced_dim', type=int, default=640, help="Dimensions to reduce before cov layer")
 
-    parser.add_argument('--pretrain_model_path', type=str, default='')
+parser.add_argument('--pretrain_model_path', type=str, default='')
 
-    parser.add_argument('--epochs', type=int, default=160)
-    parser.add_argument('--batch_size', type=int, default=64)
+parser.add_argument('--epochs', type=int, default=160)
+parser.add_argument('--batch_size', type=int, default=64)
 
-    parser.add_argument('--val_n_episodes', type=int, help='number of val episodes, default=600', default=600)
-    parser.add_argument('--n_way', type=int, default=5)
-    parser.add_argument('--n_support', type=int, default=5)
-    parser.add_argument('--n_query', type=int, default=15)
+parser.add_argument('--val_n_episodes', type=int, help='number of val episodes, default=600', default=600)
+parser.add_argument('--n_way', type=int, default=5)
+parser.add_argument('--n_support', type=int, default=5)
+parser.add_argument('--n_query', type=int, default=15)
 
-    parser.add_argument('--lr', type=float, default=0.05)
-    parser.add_argument('--optimizer', type=str, default='SGD', choices=['Adam', 'SGD'], help="Optimizers")
-    parser.add_argument('--momentum', type=float, default=0.9, help='momentum')
-    parser.add_argument('--nesterov', type=bool, default=True, help='nesterov momentum')
-    parser.add_argument('--weight_decay', type=float, default=5e-4, help='weight decay (default: 5e-4)')
-    parser.add_argument('--milestones', default=[80, 120, 140])
+parser.add_argument('--lr', type=float, default=0.05)
+parser.add_argument('--optimizer', type=str, default='SGD', choices=['Adam', 'SGD'], help="Optimizers")
+parser.add_argument('--momentum', type=float, default=0.9, help='momentum')
+parser.add_argument('--nesterov', type=bool, default=True, help='nesterov momentum')
+parser.add_argument('--weight_decay', type=float, default=5e-4, help='weight decay (default: 5e-4)')
+parser.add_argument('--milestones', default=[80, 120, 140])
 
-    parser.add_argument('--lrG', type=float, help='StepLR learning rate scheduler gamma, default=0.1', default=0.1)
-    parser.add_argument('--exp', type=str, help='exp information', default='')
-    parser.add_argument('--print_freq', type=int, help="Step interval to print", default=100)
-    parser.add_argument('--manual_seed', type=int, default=1)
-    parser.add_argument('--gpu', type=int, default=0)
-    parser.add_argument('--resume', action='store_true', help='resume training')
-    parser.add_argument('--checkpoint_path', type=str, default='')
+parser.add_argument('--lrG', type=float, help='StepLR learning rate scheduler gamma, default=0.1', default=0.1)
+parser.add_argument('--exp', type=str, help='exp information', default='')
+parser.add_argument('--print_freq', type=int, help="Step interval to print", default=100)
+parser.add_argument('--manual_seed', type=int, default=1)
+parser.add_argument('--gpu', type=int, default=0)
+parser.add_argument('--resume', action='store_true', help='resume training')
+parser.add_argument('--checkpoint_path', type=str, default='')
 
-    parser.add_argument('--born', type=int, default=1)
+parser.add_argument('--born', type=int, default=1)
 
-    args = parser.parse_args()
+args = parser.parse_args()
+if args.param_file is not None:
+    args = get_params(args.param_file)
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 torch.cuda.set_device(args.gpu)
