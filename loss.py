@@ -1,6 +1,9 @@
 # coding=utf-8
 import torch
 import time
+
+from sklearn.pipeline import make_pipeline
+from sklearn.preprocessing import StandardScaler
 from sklearnex import patch_sklearn
 
 patch_sklearn()
@@ -116,14 +119,16 @@ def stl_cls_scores(input, n_way, n_support, n_query, penalty_C):
 
     z_query = qry_normalized.detach().cpu().numpy()
     z_support = spt_normalized.detach().cpu().numpy()
+    # z_support = np.tile(z_support, (5, 1))
+
     y_support = np.repeat(range(n_way), n_support)
+    # y_support = np.tile(y_support, (5))
     clf = LogisticRegression(penalty='l2',
                              random_state=0,
                              C=penalty_C,
                              solver='lbfgs',
-                             max_iter=5000,
+                             max_iter=1000,
                              multi_class='multinomial')
-    # clf = SVC(C=penalty_C)
     clf.fit(z_support, y_support)
     y = np.repeat(range(n_way), n_query)
     scores = clf.score(z_query, y)*100

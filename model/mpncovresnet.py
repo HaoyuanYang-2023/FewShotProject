@@ -91,15 +91,7 @@ class MPNCOVResNet(nn.Module):
         super(MPNCOVResNet, self).__init__()
         self.model_func = model_func
         self.feat_dim = self.model_func.feat_dim[0]
-        self.reduced_dim = reduced_dim
-        if self.feat_dim != self.reduced_dim:
-            self.reduced_dim = reduced_dim
-            self.layer_reduce = nn.Conv2d(self.feat_dim, self.reduced_dim, kernel_size=1, stride=1, padding=0,
-                                          bias=False)
-            self.layer_reduce_bn = nn.BatchNorm2d(self.reduced_dim)
-            self.layer_reduce_relu = nn.ReLU(inplace=True)
-
-        self.meta_layer = MPNCOV.MPNCOV(iterNum=3, input_dim=640, dimension_reduction=reduced_dim)
+        self.meta_layer = MPNCOV.MPNCOV(iterNum=3, input_dim=self.feat_dim, dimension_reduction=reduced_dim)
 
     def forward(self, x):
         x = self.model_func(x)

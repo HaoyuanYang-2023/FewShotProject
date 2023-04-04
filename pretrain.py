@@ -8,10 +8,12 @@ import torch.nn as nn
 from torch.cuda.amp import autocast, GradScaler
 import numpy as np
 from torchvision.datasets import ImageFolder
+
+import utils.ema
 from params import get_params
 from Dataset import get_transformers, PrototypicalBatchSampler
 from loss import PrototypicalLoss, LabelSmoothingLoss
-from torch.utils.tensorboard import SummaryWriter
+from tensorboardX import SummaryWriter
 from utils import model_utils, init_seed, init_lr_scheduler
 
 param = argparse.ArgumentParser()
@@ -19,9 +21,42 @@ param.add_argument('--param_file', type=str, default=None, help="JSON file for p
 json_parm = param.parse_args()
 print(json_parm)
 if json_parm.param_file is not None:
-    args = get_params(True, json_parm.param_file)
+    args = get_params(json_parm.param_file)
 else:
-    args = get_params()
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--dataset', type=str, help='dataset name', default='miniImageNet',choices=['miniImageNet', 'tieredImageNet'])
+    parser.add_argument('--train_root', type=str, help='path to dataset', default='')
+    parser.add_argument('--val_root', type=str, help='path to dataset', default='')
+    parser.add_argument('--num_workers', type=int, default=8)
+
+    parser.add_argument('--model', type=str, help='model to use', default="MPNCOVResNet12")
+    parser.add_argument('--dropout_rate', type=float, default=0.5)
+    parser.add_argument('--reduced_dim', type=int, default=640, help="Dimensions to reduce before cov layer")
+
+    parser.add_argument('--epochs', type=int, default=160)
+    parser.add_argument('--batch_size', type=int, default=64)
+
+    parser.add_argument('--val_n_episodes', type=int, help='number of val episodes, default=600', default=600)
+    parser.add_argument('--n_way', type=int, default=5)
+    parser.add_argument('--n_support', type=int, default=5)
+    parser.add_argument('--n_query', type=int, default=15)
+
+    parser.add_argument('--lr', type=float, default=0.05)
+    parser.add_argument('--optimizer', type=str, default='SGD', choices=['Adam', 'SGD'], help="Optimizers")
+    parser.add_argument('--momentum', type=float, default=0.9, help='momentum')
+    parser.add_argument('--nesterov', type=bool, default=True, help='nesterov momentum')
+    parser.add_argument('--weight_decay', type=float, default=5e-4, help='weight decay (default: 5e-4)')
+    parser.add_argument('--milestones', default=[80, 120, 140])
+
+    parser.add_argument('--lrG', type=float, help='StepLR learning rate scheduler gamma, default=0.1', default=0.1)
+    parser.add_argument('--exp', type=str, help='exp information', default='exp1')
+    parser.add_argument('--print_freq', type=int, help="Step interval to print", default=100)
+    parser.add_argument('--manual_seed', type=int, default=1)
+    parser.add_argument('--gpu', type=int, default=0)
+    parser.add_argument('--resume', action='store_true', help='resume training')
+    parser.add_argument('--checkpoint_path', type=str, default='')
+
+    args = parser.parse_args()
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 torch.cuda.set_device(args.gpu)
@@ -76,6 +111,9 @@ def train(tr_dataloader, model, optim, lr_scheduler, checkpoint_dir, val_dataloa
                 tr_loss.append(loss.item())
             scaler.scale(loss).backward()
             scaler.step(optim)
+            if args.ema:
+                EMA.update()
+                EMA.apply_shadow()
             scaler.update()
 
             _, pred = model_output.topk(1, 1, True, True)
@@ -223,6 +261,9 @@ init_seed(args.manual_seed)
 tr_dataloader, val_dataloader = init_dataloader()
 
 model = init_model()
+if args.ema:
+    EMA = utils.ema.EMA(model, args.ema_decay)
+    EMA.register()
 optim = init_optim(model)
 lr_scheduler = init_lr_scheduler(optim, args.lrG, args.milestones)
 
@@ -240,5 +281,5 @@ if __name__ == "__main__":
 
     logger = SummaryWriter(log_dir=checkpoint_dir)
 
-    train(tr_dataloader=tr_dataloader, val_dataloader=None, model=model, lr_scheduler=lr_scheduler,
+    train(tr_dataloader=tr_dataloader, val_dataloader=val_dataloader, model=model, lr_scheduler=lr_scheduler,
           optim=optim, checkpoint_dir=checkpoint_dir)

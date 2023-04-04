@@ -1,5 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
+import torch.utils.data
+from torchvision.datasets import ImageFolder
 
 '''def get_cov_diff(dim):
     mean = np.zeros([dim])  # 均值向量
@@ -23,7 +25,7 @@ plt.grid()
 plt.tight_layout()
 plt.savefig('./imgs/covariance.png')'''
 
-mean = np.zeros([2000])  # 均值向量
+'''mean = np.zeros([2000])  # 均值向量
 matrix = np.eye(2000)
 # using np.multinomial() method
 gfg = np.random.multivariate_normal(mean, matrix, 4000)  # 5生成5个样本点
@@ -38,4 +40,11 @@ plt.hist(v, bins=50)
 plt.xlabel("λ")
 plt.ylabel("hist")
 plt.tight_layout()
-plt.savefig('特征值.png')
+plt.savefig('特征值.png')'''
+
+from Dataset import visual_batch, PrototypicalBatchSampler, get_transformers
+
+dataset = ImageFolder(root='F:/miniImageNet/train', transform=get_transformers('test'))
+s = PrototypicalBatchSampler(dataset.targets, 5, 6, 100)
+dl = torch.utils.data.DataLoader(dataset, batch_sampler=s)
+visual_batch(dl, 'miniImageNet')
