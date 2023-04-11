@@ -2,13 +2,14 @@
 import torch
 import time
 
-from sklearn.pipeline import make_pipeline
-from sklearn.preprocessing import StandardScaler
-from sklearnex import patch_sklearn
+# from sklearn.pipeline import make_pipeline
+# from sklearn.preprocessing import StandardScaler
+# from sklearnex import patch_sklearn
 
-patch_sklearn()
-from sklearn.linear_model import LogisticRegression
-from sklearn.svm import SVC
+# patch_sklearn()
+# from sklearn.linear_model import LogisticRegression
+# from sklearn.svm import SVC
+from cuml.linear_model import LogisticRegression
 from torch.autograd import Variable
 from torch.nn.modules import Module
 import numpy as np
@@ -27,7 +28,7 @@ class LabelSmoothingLoss(Module):
         self.smoothing = smoothing
         # 此处的self.smoothing即我们的epsilon平滑参数。
 
-    def forward(self, x,target):
+    def forward(self, x, target):
         logprobs = torch.nn.functional.log_softmax(x, dim=-1)
         nll_loss = -logprobs.gather(dim=-1, index=target.unsqueeze(1))
         nll_loss = nll_loss.squeeze(1)
@@ -73,6 +74,16 @@ def euclidean_dist(x, y):
     return torch.pow(x - y, 2).sum(2)
 
 
+def accuracy(dists, y_label):
+    #  k, dim=None, largest=True, sorted=True    return values， indices
+    # 找到每一个query样本距离最近的（最接近）的prototype
+    topk_scores, topk_labels = (-dists).data.topk(1, 1, True, True)
+    # topk_labels (n_query, 1)
+    topk_ind = topk_labels.cpu().numpy()
+    top1_correct = np.sum(topk_ind[:, 0] == y_label)
+    return top1_correct / (topk_ind.shape[0]) * 100
+
+
 def prototypical_loss(input, n_way, n_support, n_query, loss_fn):
     """
     """
@@ -90,21 +101,10 @@ def prototypical_loss(input, n_way, n_support, n_query, loss_fn):
     y_query = torch.from_numpy(y_label).long().cuda()
     y_query = Variable(y_query)
     loss_val = loss_fn(-dists, y_query)
-
-    #  k, dim=None, largest=True, sorted=True    return values， indices
-    # 找到每一个query样本距离最近的（最接近）的prototype
-    topk_scores, topk_labels = (-dists).data.topk(1, 1, True, True)
-    # topk_labels (n_query, 1)
-    topk_ind = topk_labels.cpu().numpy()
-    top1_correct = np.sum(topk_ind[:, 0] == y_label)
+    return loss_val, accuracy(dists, y_label)
 
 
-    acc_val = top1_correct / (topk_ind.shape[0]) * 100
-
-    return loss_val, acc_val
-
-
-def stl_cls_scores(input, n_way, n_support, n_query, penalty_C):
+def stl_cls_scores(input, n_way, n_support, n_query, y_support, penalty_C):
     z = input.view(n_way, n_support + n_query, -1)
     z_support = z[:, :n_support]
     z_query = z[:, n_support:]
@@ -124,12 +124,11 @@ def stl_cls_scores(input, n_way, n_support, n_query, penalty_C):
     y_support = np.repeat(range(n_way), n_support)
     # y_support = np.tile(y_support, (5))
     clf = LogisticRegression(penalty='l2',
-                             random_state=0,
-                             C=penalty_C,
-                             solver='lbfgs',
                              max_iter=1000,
-                             multi_class='multinomial')
+                             C=penalty_C,
+                             verbose=1,
+                             linesearch_max_iter=1000)
     clf.fit(z_support, y_support)
     y = np.repeat(range(n_way), n_query)
-    scores = clf.score(z_query, y)*100
+    scores = clf.score(z_query, y) * 100
     return scores

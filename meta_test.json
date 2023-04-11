@@ -1,12 +1,14 @@
 {
     "dataset": "miniImageNet",
-    "test_root": "/media/ace2nou/WD 1T/miniImageNet/test",
-    "meta_model_path": "./pretrained/MPNCOVResNet12_stl_dim192_born2_last_model.pth",
+    "test_root": "/media/ace2nou/F/miniImageNet/test",
+    "num_workers": 8,
+    "meta_model_path": "./pretrained/MPNCOVResNet12_stl_dim640_born2.pth",
     "model": "MPNCOVResNet12",
+    "test_num": 3,
     "penalty_C": 2,
     "method": "stl",
     "exp": "",
-    "reduced_dim": 192,
+    "reduced_dim": 640,
     "episodes": 2000,
     "n_way": 5,
     "n_support": 5,
@@ -14,3 +16,4 @@
     "pre2meta": true,
     "gpu": 0
 }
+

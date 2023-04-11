@@ -4,6 +4,7 @@ import torch
 import numpy as np
 
 import matplotlib.pyplot as plt
+import torchvision.datasets
 
 from torchvision import transforms
 
@@ -139,18 +140,27 @@ def visual_batch(dataloader, dataset_name):
     plt.savefig('./imgs/visual_batch_' + dataset_name + '.png')
 
 
-def get_transformers(phase=None):
+def get_transformers(rand_aug_n=2, rand_aug_m=10, rand_aug=True, phase=None):
     if phase not in ["train", "val", "test"]:
         raise ValueError("phase should have value of one of [train, val, test]")
     normalize = transforms.Normalize(mean=[0.472, 0.453, 0.410], std=[0.277, 0.268, 0.285])
     if phase == "train":
-        transformer = transforms.Compose([
-            transforms.RandomResizedCrop(84),
-            transforms.RandomHorizontalFlip(),
-            transforms.ColorJitter(0.4, 0.4, 0.4),
-            transforms.ToTensor(),
-            normalize,
-        ])
+        if rand_aug:
+            transformer = transforms.Compose([
+                transforms.RandomResizedCrop(84),
+                transforms.RandAugment(rand_aug_n, rand_aug_m),
+                transforms.ToTensor(),
+                normalize,
+            ])
+        else:
+            transformer = transforms.Compose([
+                transforms.RandomResizedCrop(84),
+                transforms.RandomHorizontalFlip(),
+                transforms.ColorJitter(0.4, 0.4, 0.4),
+                transforms.ToTensor(),
+                normalize,
+            ])
+
     else:
         transformer = transforms.Compose([
             transforms.Resize(92),
@@ -159,3 +169,6 @@ def get_transformers(phase=None):
             normalize,
         ])
     return transformer
+
+
+
