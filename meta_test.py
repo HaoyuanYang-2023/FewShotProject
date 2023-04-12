@@ -31,7 +31,7 @@ model = model.to(device)
 model.eval()
 model = torch.compile(model, disable=True)
 
-test_trans = get_transformers('test')
+test_trans = get_transformers(phase='test')
 test_dataset = ImageFolder(root=args.test_root, transform=test_trans)
 classes_per_it = args.n_way
 # 同时产生 support和query

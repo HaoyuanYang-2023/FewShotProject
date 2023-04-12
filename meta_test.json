@@ -2,7 +2,7 @@
     "dataset": "miniImageNet",
     "test_root": "/media/ace2nou/F/miniImageNet/test",
     "num_workers": 8,
-    "meta_model_path": "./pretrained/MPNCOVResNet12_stl_dim640_born2.pth",
+    "meta_model_path": "./pretrained/MPNCOVResNet12_stl_dim640_born3.pth",
     "model": "MPNCOVResNet12",
     "test_num": 3,
     "penalty_C": 2,
@@ -11,7 +11,7 @@
     "reduced_dim": 640,
     "episodes": 2000,
     "n_way": 5,
-    "n_support": 5,
+    "n_support": 1,
     "n_query": 15,
     "pre2meta": true,
     "gpu": 0

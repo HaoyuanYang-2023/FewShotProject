@@ -53,7 +53,7 @@ parser.add_argument('--gpu', type=int, default=0)
 parser.add_argument('--resume', action='store_true', help='resume training')
 parser.add_argument('--checkpoint_path', type=str, default='')
 
-parser.add_argument('--model_ema', action='store_true', help='use EMA model', default=True)
+parser.add_argument('--model_ema', action='store_true', help='use EMA model', default=False)
 parser.add_argument("--model_ema_steps", type=int, default=32,
                     help="the number of iterations that controls how often to update the EMA model (default: 32)")
 parser.add_argument("--model_ema_decay", type=float, default=0.99998,
@@ -217,11 +217,13 @@ def train(tr_dataloader, model, optim, lr_scheduler, checkpoint_dir, val_dataloa
             best_acc = avg_acc
             print('Best model found!')
             if model_ema:
-                torch.save(model_ema.state_dict(), best_model_path)
+                torch.save(model_ema.module._orig_mod.state_dict(), best_model_path)
             else:
-                torch.save(model.state_dict(), best_model_path)
-
-    torch.save(model_ema.state_dict(), last_model_path)
+                torch.save(model._orig_mod.state_dict(), best_model_path)
+    if model_ema:
+        torch.save(model_ema.module._orig_mod.state_dict(), last_model_path)
+    else:
+        torch.save(model._orig_mod.state_dict(), last_model_path)
 
 
 def init_dataset():
@@ -305,7 +307,7 @@ init_seed(args.manual_seed)
 tr_dataloader, val_dataloader = init_dataloader()
 
 model = init_model()
-model = torch.compile(model, mode="default")
+
 optim = init_optim(model)
 
 lr_scheduler = init_lr_scheduler(optim, args.lrG, args.milestones)
@@ -324,6 +326,8 @@ if args.model_ema:
     alpha = min(1.0, alpha * adjust)
     model_ema = utils.ema.ExponentialMovingAverage(model, device=device, decay=1.0 - alpha)
     model_ema = torch.compile(model_ema, mode="default")
+
+model = torch.compile(model, mode="default")
 
 if __name__ == "__main__":
     checkpoint_dir = 'runs/%s/%s' % (args.dataset, args.model)

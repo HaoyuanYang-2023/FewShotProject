@@ -1,12 +1,12 @@
 import os
 import torch
-
 import numpy as np
-
 import matplotlib.pyplot as plt
-import torchvision.datasets
 
 from torchvision import transforms
+from torchvision.datasets import ImageFolder
+
+from utils.rand_aug import RandAugment
 
 
 class PrototypicalBatchSampler(object):
@@ -145,13 +145,13 @@ def get_transformers(rand_aug_n=2, rand_aug_m=10, rand_aug=True, phase=None):
         raise ValueError("phase should have value of one of [train, val, test]")
     normalize = transforms.Normalize(mean=[0.472, 0.453, 0.410], std=[0.277, 0.268, 0.285])
     if phase == "train":
+        transform_list = [transforms.RandomResizedCrop(84)]
         if rand_aug:
-            transformer = transforms.Compose([
-                transforms.RandomResizedCrop(84),
-                transforms.RandAugment(rand_aug_n, rand_aug_m),
-                transforms.ToTensor(),
-                normalize,
-            ])
+            transform_list.append(RandAugment(rand_aug_n, rand_aug_m))
+        transform_list.append(transforms.ToTensor())
+        transform_list.append(normalize)
+        if rand_aug:
+            transformer = transforms.Compose(transform_list)
         else:
             transformer = transforms.Compose([
                 transforms.RandomResizedCrop(84),
@@ -171,4 +171,13 @@ def get_transformers(rand_aug_n=2, rand_aug_m=10, rand_aug=True, phase=None):
     return transformer
 
 
-
+'''tr_trans = get_transformers(rand_aug=True, phase='train')
+train_dataset = ImageFolder(root='/media/ace2nou/F/miniImageNet/train',
+                            transform=tr_trans)
+sampler = PrototypicalBatchSampler(labels=train_dataset.targets,
+                                   classes_per_episode=5,
+                                   sample_per_class=6,
+                                   iterations=1)
+tr_dataloader = torch.utils.data.DataLoader(train_dataset, batch_sampler=sampler, shuffle=False,
+                                            num_workers=8)
+visual_batch(dataloader=tr_dataloader, dataset_name='miniImageNet_train')'''
