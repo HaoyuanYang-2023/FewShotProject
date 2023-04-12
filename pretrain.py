@@ -67,6 +67,8 @@ parser.add_argument('--rand_aug', action='store_true', default=True)
 parser.add_argument('--rand_aug_m', default=10, type=int)
 parser.add_argument('--rand_aug_n', default=2, type=int)
 
+parser.add_argument('--compile', action='store_true', default=False)
+
 args = parser.parse_args()
 if args.param_file is not None:
     args = get_params(args.param_file)
@@ -74,7 +76,7 @@ if args.param_file is not None:
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 torch.cuda.set_device(args.gpu)
 
-print(device)
+print('Device using: {}'.format(device))
 print(args)
 
 
@@ -91,10 +93,14 @@ def meta_val(model, val_dataloader, epoch, logger, loss_fn):
         with autocast():
             with torch.no_grad():
                 # val without linear layer
-                if hasattr(model, 'module'):
-                    model_output = model.module._orig_mod[0](x)
+                '''if hasattr(model, 'module'):
+                    model_output = model.module._orig_mod[0](x) if args.compile else model.module[0](x)
                 else:
-                    model_output = model._orig_mod[0](x)
+                    model_output = model._orig_mod[0](x) if args.compile else model[0](x)'''
+                if hasattr(model, 'module'):
+                    model_output = model.module[0](x)
+                else:
+                    model_output = model[0](x)
                 loss, acc = loss_fn(model_output)
         end_time = time.time()
         episode_val_loss.append(loss.item())
@@ -217,13 +223,17 @@ def train(tr_dataloader, model, optim, lr_scheduler, checkpoint_dir, val_dataloa
             best_acc = avg_acc
             print('Best model found!')
             if model_ema:
-                torch.save(model_ema.module._orig_mod.state_dict(), best_model_path)
+                # torch.save(model_ema.module._orig_mod.state_dict(), best_model_path)
+                torch.save(model_ema.module.state_dict(), best_model_path)
             else:
-                torch.save(model._orig_mod.state_dict(), best_model_path)
+                # torch.save(model._orig_mod.state_dict(), best_model_path)
+                torch.save(model.state_dict(), best_model_path)
     if model_ema:
-        torch.save(model_ema.module._orig_mod.state_dict(), last_model_path)
+        # torch.save(model_ema.module._orig_mod.state_dict(), last_model_path)
+        torch.save(model_ema.module.state_dict(), last_model_path)
     else:
-        torch.save(model._orig_mod.state_dict(), last_model_path)
+        # torch.save(model._orig_mod.state_dict(), last_model_path)
+        torch.save(model.state_dict(), last_model_path)
 
 
 def init_dataset():
@@ -325,9 +335,13 @@ if args.model_ema:
     alpha = 1.0 - args.model_ema_decay
     alpha = min(1.0, alpha * adjust)
     model_ema = utils.ema.ExponentialMovingAverage(model, device=device, decay=1.0 - alpha)
-    model_ema = torch.compile(model_ema, mode="default")
 
-model = torch.compile(model, mode="default")
+'''if args.compile:
+    print('Using torch.compile')
+    model = torch.compile(model, mode="default")
+    if model_ema:
+        model_ema = torch.compile(model_ema, mode="default")'''
+
 
 if __name__ == "__main__":
     checkpoint_dir = 'runs/%s/%s' % (args.dataset, args.model)
