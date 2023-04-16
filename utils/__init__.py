@@ -2,6 +2,7 @@ import torch
 import numpy as np
 import random
 
+
 def init_seed(manual_seed):
     """
     Disable cudnn to maximize reproducibility
@@ -14,10 +15,17 @@ def init_seed(manual_seed):
     torch.backends.cudnn.benchmark = False
 
 
-def init_lr_scheduler(optim,lrG,milestones):
+def init_lr_scheduler(optim, lrG, milestones):
     """
     Initialize the learning rate scheduler
     """
     return torch.optim.lr_scheduler.MultiStepLR(optimizer=optim,
                                                 gamma=lrG,
                                                 milestones=milestones)
+
+
+def init_lr_cosine(optimizer, T_max):
+    """
+    Initialize the learning rate scheduler
+    """
+    return torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=T_max, eta_min=0)

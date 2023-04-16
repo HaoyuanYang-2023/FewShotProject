@@ -40,6 +40,7 @@ parser.add_argument('--n_support', type=int, default=5)
 parser.add_argument('--n_query', type=int, default=15)
 
 parser.add_argument('--lr', type=float, default=0.05)
+parser.add_argument('--lr_scheduler', default='MultiStepLR', choices=['StepLR', 'MultiStepLR', 'CosineAnnealingLR'])
 parser.add_argument('--optimizer', type=str, default='SGD', choices=['Adam', 'SGD'], help="Optimizers")
 parser.add_argument('--momentum', type=float, default=0.9, help='momentum')
 parser.add_argument('--nesterov', type=bool, default=True, help='nesterov momentum')
@@ -295,7 +296,12 @@ tr_dataloader, val_dataloader = init_dataloader()
 
 model, model_t = init_model()
 optim = init_optim(model)
-lr_scheduler = init_lr_scheduler(optim, args.lrG, args.milestones)
+
+if args.lr_scheduler == 'CosineAnnealingLR':
+    lr_scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optim, args.epochs - args.lr_warmup_epochs, eta_min=0)
+elif args.lr_scheduler == 'MultiStepLR':
+    lr_scheduler = torch.optim.lr_scheduler.MultiStepLR(optim, milestones=args.milestones, gamma=args.lrG)
+
 
 if __name__ == "__main__":
     checkpoint_dir = 'runs/%s/%s' % (args.dataset, args.model)

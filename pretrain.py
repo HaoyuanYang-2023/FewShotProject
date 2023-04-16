@@ -39,6 +39,7 @@ parser.add_argument('--n_support', type=int, default=5)
 parser.add_argument('--n_query', type=int, default=15)
 
 parser.add_argument('--lr', type=float, default=0.05)
+parser.add_argument('--lr_scheduler', default='MultiStepLR', choices=['StepLR', 'MultiStepLR', 'CosineAnnealingLR'])
 parser.add_argument('--optimizer', type=str, default='SGD', choices=['Adam', 'SGD'], help="Optimizers")
 parser.add_argument('--momentum', type=float, default=0.9, help='momentum')
 parser.add_argument('--nesterov', type=bool, default=True, help='nesterov momentum')
@@ -58,7 +59,7 @@ parser.add_argument("--model_ema_steps", type=int, default=32,
                     help="the number of iterations that controls how often to update the EMA model (default: 32)")
 parser.add_argument("--model_ema_decay", type=float, default=0.99998,
                     help="decay factor for Exponential Moving Average of model parameters (default: 0.99998)", )
-parser.add_argument("--lr_warmup_epochs", default=140, type=int, help="the number of epochs to warmup (default: 0)")
+parser.add_argument("--lr_warmup_epochs", default=0, type=int, help="the number of epochs to warmup (default: 0)")
 
 parser.add_argument('--label_smooth', action='store_true', default=True)
 parser.add_argument('--smooth', default=0.2, type=float)
@@ -240,7 +241,8 @@ def train(tr_dataloader, model, optim, lr_scheduler, checkpoint_dir, val_dataloa
 
 
 def init_dataset():
-    tr_trans = get_transformers(rand_aug=args.rand_aug,rand_aug_n=args.rand_aug_n,rand_aug_m=args.rand_aug_m,phase='train')
+    tr_trans = get_transformers(rand_aug=args.rand_aug, rand_aug_n=args.rand_aug_n, rand_aug_m=args.rand_aug_m,
+                                phase='train')
     val_trans = get_transformers(phase='val')
     train_dataset = ImageFolder(root=args.train_root,
                                 transform=tr_trans)
@@ -323,7 +325,10 @@ model = init_model()
 
 optim = init_optim(model)
 
-lr_scheduler = init_lr_scheduler(optim, args.lrG, args.milestones)
+if args.lr_scheduler == 'CosineAnnealingLR':
+    lr_scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optim, args.epochs-args.lr_warmup_epochs, eta_min=0)
+elif args.lr_scheduler == 'MultiStepLR':
+    lr_scheduler = torch.optim.lr_scheduler.MultiStepLR(optim, milestones=args.milestones, gamma=args.lrG)
 
 model_ema = None
 if args.model_ema:
@@ -344,7 +349,6 @@ if args.model_ema:
     model = torch.compile(model, mode="default")
     if model_ema:
         model_ema = torch.compile(model_ema, mode="default")'''
-
 
 if __name__ == "__main__":
     checkpoint_dir = 'runs/%s/%s' % (args.dataset, args.model)
