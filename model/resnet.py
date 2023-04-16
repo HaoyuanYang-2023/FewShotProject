@@ -393,7 +393,7 @@ class BasicBlockVariant(nn.Module):
 class resnet(nn.Module):
 
     def __init__(self, block, n_blocks, keep_prob=1.0, avg_pool=False, drop_rate=0.0,
-                 dropblock_size=5, num_classes=-1, use_se=False):
+                 dropblock_size=5, num_classes=-1, use_se=False, resnet_d=False):
         super(resnet, self).__init__()
 
         self.inplanes = 3
@@ -411,6 +411,7 @@ class resnet(nn.Module):
         self.dropout = nn.Dropout(p=1 - self.keep_prob, inplace=False)
         self.drop_rate = drop_rate
         self.feat_dim = [640, 10, 10]
+        self.resnet_d = resnet_d
 
         for m in self.modules():
             if isinstance(m, nn.Conv2d):
@@ -426,12 +427,19 @@ class resnet(nn.Module):
     def _make_layer(self, block, n_block, planes, stride=1, drop_rate=0.0, drop_block=False, block_size=1):
         downsample = None
         if stride != 1 or self.inplanes != planes * block.expansion:
-            downsample = nn.Sequential(
-                nn.Conv2d(self.inplanes, planes * block.expansion,
-                          kernel_size=1, stride=1, bias=False),
-                nn.BatchNorm2d(planes * block.expansion),
-            )
-
+            if self.resnet_d:
+                downsample = nn.Sequential(
+                    nn.AvgPool2d(kernel_size=1, stride=1, ceil_mode=True, count_include_pad=True),
+                    nn.Conv2d(self.inplanes, planes * block.expansion,
+                              kernel_size=1, stride=1, bias=False),
+                    nn.BatchNorm2d(planes * block.expansion),
+                )
+            else:
+                downsample = nn.Sequential(
+                    nn.Conv2d(self.inplanes, planes * block.expansion,
+                              kernel_size=1, stride=1, bias=False),
+                    nn.BatchNorm2d(planes * block.expansion),
+                )
         layers = []
         if n_block == 1:
             layer = block(self.inplanes, planes, stride, downsample, drop_rate, drop_block, block_size, self.use_se)
@@ -458,10 +466,11 @@ class resnet(nn.Module):
         return x
 
 
-def ResNet12(keep_prob=1.0, avg_pool=True, **kwargs):
+def ResNet12(keep_prob=1.0, avg_pool=True, use_se=False, resnet_d=False, **kwargs):
     """Constructs a ResNet-12 model.
     """
-    model = resnet(BasicBlockVariant, [1, 1, 1, 1], keep_prob=keep_prob, avg_pool=avg_pool, **kwargs)
+    model = resnet(BasicBlockVariant, [1, 1, 1, 1], keep_prob=keep_prob, avg_pool=avg_pool, use_se=use_se,
+                   resnet_d=resnet_d, **kwargs)
     return model
 
 

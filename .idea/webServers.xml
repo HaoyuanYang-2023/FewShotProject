@@ -3,7 +3,7 @@
   <component name="WebServers">
     <option name="servers">
       <webServer id="0bf87dea-6461-4a00-a36c-394098a9d6e0" name="GPU">
-        <fileTransfer rootFolder="/root/autodl-nas/FewShotProject" accessType="SFTP" host="region-41.seetacloud.com" port="12622" sshConfigId="46c88da9-d2d5-4222-ae58-134f44eca789" sshConfig="root@region-41.seetacloud.com:12622 password">
+        <fileTransfer rootFolder="/root/autodl-nas/" accessType="SFTP" host="region-41.seetacloud.com" port="12622" sshConfigId="46c88da9-d2d5-4222-ae58-134f44eca789" sshConfig="root@region-41.seetacloud.com:12622 password">
           <advancedOptions>
             <advancedOptions dataProtectionLevel="Private" keepAliveTimeout="0" passiveMode="true" shareSSLContext="true" />
           </advancedOptions>

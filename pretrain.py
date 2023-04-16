@@ -67,6 +67,9 @@ parser.add_argument('--rand_aug', action='store_true', default=True)
 parser.add_argument('--rand_aug_m', default=10, type=int)
 parser.add_argument('--rand_aug_n', default=2, type=int)
 
+parser.add_argument('--use_se', action='store_true', default=False)
+parser.add_argument('--resnet_d', action='store_true', default=False)
+
 parser.add_argument('--compile', action='store_true', default=False)
 
 args = parser.parse_args()
@@ -277,7 +280,7 @@ def init_dataloader():
 
 
 def init_model():
-    model = model_utils.model_dict[args.model](args.reduced_dim)
+    model = model_utils.model_dict[args.model](reduce_dim=args.reduced_dim, use_se=args.use_se, resnet_d=args.resnet_d)
 
     in_dim = int(args.reduced_dim * (args.reduced_dim + 1) / 2)
     if args.dataset == 'miniImageNet':

@@ -13,10 +13,24 @@ from utils.model_utils import load_model
 from torchvision.datasets import ImageFolder
 
 param = argparse.ArgumentParser()
-param.add_argument('--param_file', type=str, default=None, help="JSON file for parameters")
-json_parm = param.parse_args()
-print(json_parm)
-args = get_params(json_parm.param_file)
+param.add_argument('--dataset', type=str, default='miniImageNet', help='miniImageNet or tieredImageNet')
+param.add_argument('--test_root', type=str, default='./data/miniImageNet/images', help='test root')
+param.add_argument('--meta_model_path', type=str, default='./checkpoints/miniImageNet/ResNet10/ResNet10_5way_1shot.pth',
+                        help='meta model path')
+param.add_argument('--method', type=str, default='protonet', help='protonet or stl')
+param.add_argument('--model', type=str, default='ResNet10', help='model name')
+param.add_argument('--reduced_dim', type=int, default=64, help='reduced dim')
+param.add_argument('--n_way', type=int, default=5, help='n way')
+param.add_argument('--n_support', type=int, default=1, help='n support')
+param.add_argument('--n_query', type=int, default=15, help='n query')
+param.add_argument('--gpu', type=int, default=0, help='gpu id')
+param.add_argument('--episodes', type=int, default=2000, help='episodes')
+param.add_argument('--pre2meta', type=bool, default=False, help='pre2meta')
+param.add_argument('--test_num', type=int, default=3, help='test num')
+param.add_argument('--penalty_C', type=float, default=2.0, help='penalty C')
+param.add_argument('--num_workers', type=int, default=8, help='num workers')
+args = param.parse_args()
+print(args)
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 torch.cuda.set_device(args.gpu)

@@ -20,8 +20,8 @@ class META_BDC(nn.Module):
         return x
 
 
-def metabdcresnet12(reduce_dim):
-    model_func = ResNet12()
+def metabdcresnet12(reduce_dim, use_se=False):
+    model_func = ResNet12(use_se=use_se)
     model = META_BDC(model_func=model_func, reduced_dim=reduce_dim)
     return model
 

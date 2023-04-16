@@ -19,7 +19,7 @@ from torchvision.datasets import ImageFolder
 parser = argparse.ArgumentParser()
 parser.add_argument('--param_file', type=str, default=None, help="JSON file for hyper-parameters")
 parser.add_argument('--dataset', type=str, help='dataset name', default='miniImageNet',
-                        choices=['miniImageNet', 'tieredImageNet'])
+                    choices=['miniImageNet', 'tieredImageNet'])
 parser.add_argument('--train_root', type=str, help='path to dataset', default='')
 parser.add_argument('--val_root', type=str, help='path to dataset', default='')
 parser.add_argument('--num_workers', type=int, default=8)
@@ -33,7 +33,7 @@ parser.add_argument('--pretrain_model_path', type=str, default='')
 parser.add_argument('--epochs', type=int, default=160)
 parser.add_argument('--batch_size', type=int, default=64)
 
-parser.add_argument('--val',type=str,choices=['meta','last'])
+parser.add_argument('--val', type=str, choices=['meta', 'last'])
 parser.add_argument('--val_n_episode', type=int, help='number of val episodes, default=600', default=600)
 parser.add_argument('--n_way', type=int, default=5)
 parser.add_argument('--n_support', type=int, default=5)
@@ -53,6 +53,9 @@ parser.add_argument('--manual_seed', type=int, default=1)
 parser.add_argument('--gpu', type=int, default=0)
 parser.add_argument('--resume', action='store_true', help='resume training')
 parser.add_argument('--checkpoint_path', type=str, default='')
+
+parser.add_argument('--use_se', action='store_true', default=False)
+parser.add_argument('--resnet_d', action='store_true', default=False)
 
 parser.add_argument('--born', type=int, default=1)
 
@@ -82,7 +85,6 @@ class DistillKL(nn.Module):
 
 
 def train(tr_dataloader, model, model_t, optim, lr_scheduler, checkpoint_dir, val_dataloader):
-
     start_epoch = 0
 
     best_acc = 0
@@ -245,8 +247,9 @@ def init_model():
     """
     Initialize the ProtoNet
     """
-    model = model_utils.model_dict[args.model](args.reduced_dim)
-    model_t = model_utils.model_dict[args.model](args.reduced_dim)
+    model = model_utils.model_dict[args.model](args.reduced_dim, use_se=args.use_se, resnet_d=args.resnet_d)
+    model_t = model_utils.model_dict[args.model](args.reduced_dim, use_se=args.use_se, resnet_d=args.resnet_d)
+
     in_dim = int(args.reduced_dim * (args.reduced_dim + 1) / 2)
     if args.dataset == 'miniImageNet':
         num_class = 64
@@ -256,7 +259,7 @@ def init_model():
     model_s = nn.Sequential(model, nn.Dropout(args.dropout_rate), linear)
     model_s = model_s.to(device)
 
-    model_t = nn.Sequential(model_t, nn.Dropout(args.dropout_rate), nn.Linear(in_dim,num_class))
+    model_t = nn.Sequential(model_t, nn.Dropout(args.dropout_rate), nn.Linear(in_dim, num_class))
     model_t = model_utils.load_model(model_t, args.pretrain_model_path, pre2meta=False)
     model_t = model_t.to(device)
 

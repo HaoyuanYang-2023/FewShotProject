@@ -107,7 +107,7 @@ class RandAugment(torch.nn.Module):
             num_ops: int = 2,
             magnitude: int = 9,
             num_magnitude_bins: int = 31,
-            interpolation=Image.Resampling.NEAREST,
+            interpolation=0,
             fill = None,
     ) -> None:
         super().__init__()

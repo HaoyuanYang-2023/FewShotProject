@@ -1,7 +1,7 @@
 from enum import Enum
 from typing import Any, List, Optional, Tuple, Union
 import math
-
+from torchvision.transforms import functional as F
 import PIL
 from PIL import Image, ImageEnhance, ImageOps
 
